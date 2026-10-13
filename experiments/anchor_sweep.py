@@ -16,7 +16,7 @@ def pick_anchors(pos, m):
     return ids
 
 
-def run_trial(n_anchors, k, seed, n=64, steps=300, dt=0.1, init_sigma=1.0, known_v0=False):
+def run_trial(n_anchors, k, seed, n=64, steps=300, dt=0.1, init_sigma=1.0, known_v0=False, iters=1):
     rng = np.random.default_rng(seed)
     truth = simulate(init_swarm(n, seed=seed), steps=steps, dt=dt, seed=seed)
     anchors = pick_anchors(truth[0], n_anchors)
@@ -27,7 +27,7 @@ def run_trial(n_anchors, k, seed, n=64, steps=300, dt=0.1, init_sigma=1.0, known
         p = truth[t]
         ekf.predict(dt)
         pairs = knn_pairs(p, k=k)
-        ekf.update_ranges(pairs, uwb_ranges(p, pairs, 0.1, rng), 0.1)
+        ekf.update_ranges(pairs, uwb_ranges(p, pairs, 0.1, rng), 0.1, iters=iters)
         ekf.update_anchors(anchors, p[anchors] + rng.normal(0, 0.02, (n_anchors, 3)), 0.02)
     p = truth[-1]
     return rms(ekf.pos - p), relative_rms(ekf.pos, p), nees_position(ekf, p)

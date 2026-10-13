@@ -24,20 +24,32 @@ class SwarmEKF:
         self.x = F @ self.x
         self.P = F @ self.P @ F.T + np.kron(np.eye(self.n), Q1)
 
-    def range_model(self, pairs):
-        """Predikert avstand og Jacobian H for nabopar."""
+    def range_model(self, pairs, x=None):
+        """Predikert avstand og Jacobian H for nabopar, linearisert i x (standard: self.x)."""
+        x = self.x if x is None else x
+        pos = x.reshape(self.n, 6)[:, :3]
         i, j = np.array(pairs).T
-        d = self.pos[j] - self.pos[i]
+        d = pos[j] - pos[i]
         rho = np.linalg.norm(d, axis=1)
-        u = d / rho[:, None]                        # enhetsvektor = ∂ρ/∂p_j
+        u = d / rho[:, None]
         H = np.zeros((len(pairs), 6 * self.n)); rows = np.arange(len(pairs))
         for a in range(3):
             H[rows, 6*i + a], H[rows, 6*j + a] = -u[:, a], u[:, a]
         return rho, H
 
-    def update_ranges(self, pairs, r, sigma_r):
-        rho, H = self.range_model(pairs)
-        return self._update(r, rho, H, sigma_r**2 * np.eye(len(r)))
+    def update_ranges(self, pairs, r, sigma_r, iters=1):
+        """iters=1: standard EKF. iters>1: iterert EKF (relinearisering)."""
+        R = sigma_r**2 * np.eye(len(r))
+        x0, xi = self.x.copy(), self.x.copy()
+        for _ in range(iters):
+            rho, H = self.range_model(pairs, xi)
+            S = H @ self.P @ H.T + R
+            K = np.linalg.solve(S, H @ self.P).T
+            xi = x0 + K @ (r - rho - H @ (x0 - xi))
+        IKH = np.eye(len(xi)) - K @ H
+        self.P = IKH @ self.P @ IKH.T + K @ R @ K.T
+        self.x = xi
+        return r - rho, S
 
     def update_anchors(self, ids, p_meas, sigma_a):
         H = np.zeros((3 * len(ids), 6 * self.n))
