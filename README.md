@@ -1,109 +1,109 @@
-# Relativ posisjonering i dronesverm
+# Relative Positioning in UAV Swarms
 
-Estimering av relativ og absolutt posisjon i en sverm på 64 UAV-er ved fusjon av UWB-avstandsmålinger, RTK-ankre og barometer i et sentralisert (iterert) Extended Kalman Filter.
+Estimation of relative and absolute position in a swarm of 64 UAVs by fusing UWB range measurements, RTK anchors and barometric altitude in a centralized (iterated) Extended Kalman Filter.
 
-**Problemstilling:** Hvor få ankre og hvor lite konnektivitet tåler svermen før relativ og absolutt posisjonsnøyaktighet bryter sammen?
+**Research question:** How few anchors and how little connectivity can the swarm tolerate before relative and absolute positioning accuracy break down?
 
-![UWB-nettverk for k = 4 og k = 8](figures/uwb_network.png)
+![UWB network for k = 4 and k = 8](figures/uwb_network.png)
 
-## Metode
+## Method
 
-| Komponent | Modell |
+| Component | Model |
 |---|---|
-| Sverm | 64 droner, 8×8-rutenett, 10 m avstand, ca. 50 m høyde |
-| Bevegelse | Felles hastighet 2 m/s + individuelt Gauss-Markov-avvik |
-| UWB | Avstand til k nærmeste naboer, σ = 0,1 m |
-| Ankre | RTK-posisjon, σ = 0,02 m, plassert med farthest point sampling |
-| Barometer | Høyde for alle droner, σ = 0,3 m (valgfritt) |
-| Estimator | Sentralisert EKF/IEKF, tilstand [p, v] per drone (384 tilstander), konstant-hastighetsmodell, Joseph-form |
-| Evaluering | Absolutt RMS, relativ RMS (etter Kabsch-tilpasning), ANEES, Monte Carlo |
+| Swarm | 64 UAVs, 8×8 grid, 10 m spacing, ~50 m altitude |
+| Motion | Common velocity 2 m/s + individual Gauss-Markov deviation |
+| UWB | Range to k nearest neighbours, σ = 0.1 m |
+| Anchors | RTK position, σ = 0.02 m, placed by farthest point sampling |
+| Barometer | Altitude for all UAVs, σ = 0.3 m (optional) |
+| Estimator | Centralized EKF/IEKF, state [p, v] per UAV (384 states), constant-velocity model, Joseph form |
+| Evaluation | Absolute RMS, relative RMS (after Kabsch alignment), ANEES, Monte Carlo |
 
-Konvergens er definert som relativ RMS < 0,3 m (3σ_UWB). RMS og ANEES rapporteres som median blant konvergerte kjøringer.
+Convergence is defined as relative RMS < 0.3 m (3σ_UWB). RMS and ANEES are reported as the median over converged runs.
 
-## Resultater
+## Results
 
-### 1. Verifikasjon av filteret
-Med 16 ankre og k = 8 konvergerer filteret til 7 cm RMS med ANEES 0,97 (95 % intervall [0,91, 1,09]) for initialfeil ≤ 1 m. Ved 2 m initialfeil divergerer det. Implementasjonen er korrekt, og konvergensområdet ligger mellom 1 og 2 m.
+### 1. Filter verification
+With 16 anchors and k = 8, the filter converges to 7 cm RMS with ANEES 0.97 (95 % interval [0.91, 1.09]) for initial errors ≤ 1 m. At 2 m initial error it diverges. The implementation is correct, and the convergence basin lies between 1 and 2 m.
 
-### 2. Ankre og konnektivitet (EKF, initialfeil 1 m, M = 10)
+### 2. Anchors and connectivity (EKF, 1 m initial error, M = 10)
 
-| Ankre | k | Konv. | Abs. RMS [m] | Rel. RMS [m] | ANEES |
+| Anchors | k | Conv. | Abs. RMS [m] | Rel. RMS [m] | ANEES |
 |---:|---:|---:|---:|---:|---:|
 | 1 | 4 | 0/10 | – | – | – |
 | 2 | 4 | 0/10 | – | – | – |
 | 4 | 4 | 0/10 | – | – | – |
 | 8 | 4 | 0/10 | – | – | – |
-| 16 | 4 | 1/10 | 0,187 | 0,183 | 1,09 |
-| 1 | 6 | 4/10 | 5,803 | 0,190 | 39,57 |
-| 2 | 6 | 2/10 | 3,815 | 0,211 | 26,77 |
-| 4 | 6 | 5/10 | 0,205 | 0,163 | 1,03 |
-| 8 | 6 | 4/10 | 0,156 | 0,135 | 1,02 |
-| 16 | 6 | 10/10 | 0,098 | 0,094 | 1,00 |
-| 1 | 8 | 6/10 | 6,256 | 0,119 | 47,75 |
-| 2 | 8 | 9/10 | 1,356 | 0,115 | 1,20 |
-| 4 | 8 | 7/10 | 0,109 | 0,093 | 0,91 |
-| 8 | 8 | 10/10 | 0,094 | 0,088 | 1,01 |
-| 16 | 8 | 10/10 | 0,075 | 0,074 | 1,00 |
+| 16 | 4 | 1/10 | 0.187 | 0.183 | 1.09 |
+| 1 | 6 | 4/10 | 5.803 | 0.190 | 39.57 |
+| 2 | 6 | 2/10 | 3.815 | 0.211 | 26.77 |
+| 4 | 6 | 5/10 | 0.205 | 0.163 | 1.03 |
+| 8 | 6 | 4/10 | 0.156 | 0.135 | 1.02 |
+| 16 | 6 | 10/10 | 0.098 | 0.094 | 1.00 |
+| 1 | 8 | 6/10 | 6.256 | 0.119 | 47.75 |
+| 2 | 8 | 9/10 | 1.356 | 0.115 | 1.20 |
+| 4 | 8 | 7/10 | 0.109 | 0.093 | 0.91 |
+| 8 | 8 | 10/10 | 0.094 | 0.088 | 1.01 |
+| 16 | 8 | 10/10 | 0.075 | 0.074 | 1.00 |
 
-### 3. EKF vs. IEKF (8 ankre, M = 5)
+### 3. EKF vs. IEKF (8 anchors, M = 5)
 
-| Initialfeil | k | EKF konv. | IEKF konv. | Rel. RMS IEKF [m] |
+| Initial error | k | EKF conv. | IEKF conv. | Rel. RMS IEKF [m] |
 |---:|---:|---:|---:|---:|
 | 1 m | 4 | 0/5 | 0/5 | – |
-| 1 m | 6 | 1/5 | 4/5 | 0,111 |
-| 1 m | 8 | 5/5 | 5/5 | 0,095 |
+| 1 m | 6 | 1/5 | 4/5 | 0.111 |
+| 1 m | 8 | 5/5 | 5/5 | 0.095 |
 | 2 m | 4 | 0/5 | 0/5 | – |
-| 2 m | 6 | 0/5 | 3/5 | 0,110 |
-| 2 m | 8 | 1/5 | 5/5 | 0,095 |
+| 2 m | 6 | 0/5 | 3/5 | 0.110 |
+| 2 m | 8 | 1/5 | 5/5 | 0.095 |
 
-### 4. Barometer (IEKF, 8 ankre, initialfeil 1 m, M = 5)
+### 4. Barometer (IEKF, 8 anchors, 1 m initial error, M = 5)
 
-| k | Barometer | Konv. | Rel. RMS [m] | ANEES |
+| k | Barometer | Conv. | Rel. RMS [m] | ANEES |
 |---:|---|---:|---:|---:|
-| 4 | nei | 0/5 | – | – |
-| 4 | σ = 0,3 m | 5/5 | 0,171 | 1,01 |
-| 6 | nei | 4/5 | 0,111 | 0,93 |
-| 6 | σ = 0,3 m | 5/5 | 0,100 | 1,02 |
+| 4 | no | 0/5 | – | – |
+| 4 | σ = 0.3 m | 5/5 | 0.171 | 1.01 |
+| 6 | no | 4/5 | 0.111 | 0.93 |
+| 6 | σ = 0.3 m | 5/5 | 0.100 | 1.02 |
 
-## Funn
+## Findings
 
-1. **Relativ geometri er uavhengig av ankre.** Ved konvergens er relativ RMS 7–21 cm uansett antall ankre. Den bestemmes av UWB-nettverket.
-2. **Absolutt posisjon krever ≥ 4 ankre.** Med 1 anker er rotasjon om ankeret uobserverbar (ca. 6 m feil). Med 2 ankre er rotasjon om aksen gjennom ankrene uobserverbar (ca. 1,4 m). Med ≥ 4 ankre er absolutt RMS ≈ relativ RMS.
-3. **Falsk observerbarhet.** Med 1–2 ankre er ANEES 27–48. Lineariseringen gir filteret informasjon i uobserverbare retninger, og P blir overkonfident.
-4. **Konnektivitet styrer robustheten.** k = 8 er robust, k = 6 krever mange ankre, og k = 4 feiler.
-5. **IEKF utvider konvergensområdet.** Konvergensraten øker, særlig ved 2 m initialfeil, mens nøyaktigheten er uendret.
-6. **k = 4 feiler selv fra perfekt initialisering.** Problemet er observerbarhet, ikke initialisering.
-7. **Rotårsaken er plan geometri.** Svermen spenner ca. 70 m horisontalt og bare ca. 4 m vertikalt, så ∂ρ/∂z ≈ 0 for nesten alle UWB-linker. Barometer gir k = 4 5/5 konvergens med ANEES ≈ 1, og konnektivitetskravet reduseres fra d+1 = 4 til 3.
+1. **Relative geometry is independent of anchors.** When converged, relative RMS is 7–21 cm regardless of anchor count. It is determined by the UWB network.
+2. **Absolute position requires ≥ 4 anchors.** With 1 anchor, rotation about the anchor is unobservable (~6 m error). With 2 anchors, rotation about the axis through them is unobservable (~1.4 m). With ≥ 4 anchors, absolute RMS ≈ relative RMS.
+3. **Spurious observability.** With 1–2 anchors, ANEES is 27–48. Linearization gives the filter information in unobservable directions, and P becomes overconfident.
+4. **Connectivity governs robustness.** k = 8 is robust, k = 6 needs many anchors, and k = 4 fails.
+5. **IEKF enlarges the convergence basin.** The convergence rate increases, especially at 2 m initial error, while accuracy is unchanged.
+6. **k = 4 fails even from perfect initialization.** The problem is observability, not initialization.
+7. **Root cause is planar geometry.** The swarm spans ~70 m horizontally but only ~4 m vertically, so ∂ρ/∂z ≈ 0 for nearly all UWB links. Adding a barometer gives k = 4 5/5 convergence with ANEES ≈ 1, reducing the connectivity requirement from d+1 = 4 to 3.
 
-**Foreløpig svar på problemstillingen:** relativ posisjonering krever 0–1 ankre, absolutt posisjonering ≥ 4 ankre. Uten barometer kreves k ≥ 8 for robust konvergens; med barometer er k = 4 tilstrekkelig.
+**Preliminary answer:** relative positioning requires 0–1 anchors; absolute positioning requires ≥ 4 anchors. Without a barometer, k ≥ 8 is needed for robust convergence; with a barometer, k = 4 is sufficient.
 
-## Begrensninger
+## Limitations
 
-- Filteret initialiseres med sann posisjon pluss støy; ingen initialiseringsalgoritme (f.eks. MDS).
-- Nabogrupper velges fra sann posisjon.
-- Barometer modellert med hvit støy, uten langsom bias.
-- UWB uten utliggere (NLOS) og uten pakketap.
-- Sentralisert estimator; ikke skalerbar til sanntid på drone.
-- M = 5–10 gir stor usikkerhet i konvergensrater (ca. ±30 prosentpoeng).
+- The filter is initialized with true position plus noise; no initialization algorithm (e.g. MDS).
+- Neighbour sets are selected from true positions.
+- Barometer modelled with white noise, without slowly varying bias.
+- UWB without outliers (NLOS) or packet loss.
+- Centralized estimator; not scalable to real-time onboard use.
+- M = 5–10 gives large uncertainty in convergence rates (~±30 percentage points).
 
-## Videre arbeid
+## Future work
 
-- Verifisere rigiditetsteori: k = 2 og k = 3 med barometer.
-- Øke Monte Carlo til M ≥ 30.
-- MDS-initialisering og robust UWB-modell (NLOS, Huber-tap).
-- Desentralisert estimator (covariance intersection) og sammenligning mot sentralisert referanse.
-- Feltvalidering med 2–4 RTK-mottakere og UWB-moduler.
+- Verify rigidity theory: k = 2 and k = 3 with barometer.
+- Increase Monte Carlo runs to M ≥ 30.
+- MDS initialization and robust UWB model (NLOS, Huber loss).
+- Decentralized estimator (covariance intersection) compared against the centralized reference.
+- Field validation with 2–4 RTK receivers and UWB modules.
 
-## Struktur
+## Structure
 
 ```
 src/swarm/        simulation.py, sensors.py, estimator.py, metrics.py
-tests/            enhetstester (målemodell, Jacobian, IEKF, Kabsch)
+tests/            unit tests (measurement model, Jacobian, IEKF, Kabsch)
 experiments/      anchor_sweep.py, compare_iekf.py, compare_baro.py, diagnose.py, plot_network.py
-figures/          genererte figurer
+figures/          generated figures
 ```
 
-## Kjøring
+## Usage
 
 ```powershell
 py -3.15 -m venv .venv
