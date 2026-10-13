@@ -15,4 +15,5 @@ ankre   k  konv.  abs RMS [m]  rel RMS [m]   ANEES
     4   8   7/10        0.109        0.093    0.91
     8   8  10/10        0.094        0.088    1.01
    16   8  10/10        0.075        0.074    1.00
-   
+
+![UWB-nettverk for k = 4 og k = 8](figures/uwb_network.png)

@@ -57,6 +57,12 @@ class SwarmEKF:
             H[3*k:3*k+3, 6*a:6*a+3] = np.eye(3)
         return self._update(p_meas.ravel(), H @ self.x, H, sigma_a**2 * np.eye(3 * len(ids)))
 
+    def update_altitude(self, z_meas, sigma_z):
+        """Barometer: uavhengig høydemåling for alle droner."""
+        H = np.zeros((self.n, 6 * self.n))
+        H[np.arange(self.n), 6 * np.arange(self.n) + 2] = 1.0
+        return self._update(z_meas, H @ self.x, H, sigma_z**2 * np.eye(self.n))
+
     def _update(self, z, h, H, R):
         S = H @ self.P @ H.T + R                    # innovasjonskovarians
         K = np.linalg.solve(S, H @ self.P).T        # Kalman-gain
