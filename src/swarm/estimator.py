@@ -1,10 +1,14 @@
 import numpy as np
 
+
 class SwarmEKF:
     """Sentralisert EKF. Tilstand per drone: [p(3), v(3)] i ENU."""
-    def __init__(self, p0, sigma_p0=2.0, sigma_v0=1.0, q=0.3):
+
+    def __init__(self, p0, v0=None, sigma_p0=2.0, sigma_v0=1.0, q=0.3):
         self.n, self.q = len(p0), q
         X = np.zeros((self.n, 6)); X[:, :3] = p0
+        if v0 is not None:
+            X[:, 3:] = v0
         self.x = X.ravel()
         self.P = np.diag(np.tile([sigma_p0**2]*3 + [sigma_v0**2]*3, self.n))
 
